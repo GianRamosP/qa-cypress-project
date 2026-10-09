@@ -1,17 +1,43 @@
-describe('Login', () => {
+import LoginPage from "../pages/LoginPage";
 
-  it('debería mostrar un error cuando las credenciales son incorrectas', () => {
+describe("Login", () => {
+  const loginPage = new LoginPage();
 
-    cy.visit('https://the-internet.herokuapp.com/login')
+  beforeEach(() => {
+    loginPage.visit();
+  });
 
-    cy.get('#username').type('usuarioIncorrecto')
-    cy.get('#password').type('passwordIncorrecta')
+  it("debería mostrar un error cuando las credenciales son incorrectas", () => {
+    loginPage.login("usuarioIncorrecto", "SuperSecretPassword!");
+    loginPage.verifyError("Your username is invalid");
+  });
 
-    cy.get('button[type="submit"]').click()
+  it("debería iniciar sesión con credenciales válidas", () => {
+    loginPage.login("tomsmith", "SuperSecretPassword!");
+    loginPage.verifySuccessfulLogin();
+  });
 
-    cy.get('#flash')
-      .should('be.visible')
-      .and('contain', 'Your username is invalid')
-  })
+  it("debería rechazar un usuario incorrecto", () => {
+    loginPage.login("usuarioIncorrecto", "SuperSecretPassword!");
+    loginPage.verifyError("Your username is invalid");
+  });
 
-})
+  it("debería rechazar una contraseña incorrecta", () => {
+    loginPage.login("tomsmith", "passwordIncorrecta");
+    loginPage.verifyError("Your password is invalid");
+  });
+
+  it("debería mostrar un error al enviar campos vacíos", () => {
+    loginPage.clickLogin();
+
+    loginPage.verifyError("Your username is invalid!");
+  });
+
+  it("debería permitir iniciar sesión presionando Enter", () => {
+    loginPage.typeUsername("tomsmith");
+    loginPage.typePassword("SuperSecretPassword!");
+    cy.get("#password").type("{enter}");
+
+    loginPage.verifySuccessfulLogin();
+  });
+});
